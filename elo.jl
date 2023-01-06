@@ -57,7 +57,7 @@ function score(s1::Number, s2::Number, ref=nothing)
             boost = 0
         end
     elseif ref == 0 
-        throw(error("ref must be > 0"))
+        boost = 0
     else
         boost = max(abs(s1 - s2) - 1, 0) / ref
     end
@@ -172,6 +172,8 @@ end
 function get_elos(teams, outcomes, mode)
     if mode == "Artifact assault"
         ref = 4
+    elseif mode == "Domination"
+        ref = 0
     else
         ref = nothing
     end
