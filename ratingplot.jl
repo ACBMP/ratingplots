@@ -134,7 +134,7 @@ function gethistory(teams, outcome, mode, dates=false, p_draw=:auto, converge=tr
             end
             temp_teams[j] = names
         end
-        if dates
+        if typeof(dates) != Bool
             # these dates are a bit weird
             if dates[i] === missing
                 push!(times, Dates.value(Date(trackingstart) - Date(startingdate)))
@@ -176,7 +176,7 @@ end
 
 Plot History h. Players with deviation above stdevthreshold will be ignored. Deviations are scaled by ribscale for plotting.
 """
-function plothist(h::History, mode::String, stdevthreshold=0.8, ribscale=0.1, size=(2000, 1000), ylim=0, xlim=0, fmt="png")
+function plothist(h::History, mode, stdevthreshold=0.8, ribscale=0.1, size=(2000, 1000), ylim=0, xlim=0, fmt="png")
     plt = plot(xlabel="Games", ylabel="Skill", title=mode, size=size, margin=(20, :mm), legend=false, right_margin=(30, :mm))
     
     curve = ttt.learning_curves(h)
@@ -253,7 +253,6 @@ function main()
         else
             h = gethistory(t, outcome, mode, dates, :auto, !pargs["no-converge"], pargs["gamma"])
         end
-        println(typeof(h))
         plothist(h, mode, pargs["threshold"], pargs["ribbon-scale"], (pargs["width"], pargs["height"]), pargs["ylim"], pargs["xlim"], pargs["format"])
     elseif pargs["algo"] == "Elo"
         players = get_elos(t, outcome, mode)
