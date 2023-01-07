@@ -117,7 +117,7 @@ function w_mean(ratings::Vector{Vector{Float64}})
     w_mean(ratings[1], ratings[2])
 end
 
-function team_ratings!(all_players, teams, outcome, s1, s2, ref=nothing, totalgames=1)
+function team_ratings!(all_players, teams, outcome, s1, s2, ref=nothing, totalgames=1, iterations=1)
     l = length(teams)
     if length(teams[1]) != length(teams[2])
         throw(error("team lengths differ"))
@@ -162,10 +162,11 @@ function team_ratings!(all_players, teams, outcome, s1, s2, ref=nothing, totalga
             push!(all_players[teams[i][j]].history, (all_players[teams[i][j]].rating, totalgames))
         end
     end
+
     all_players
 end
 
-function get_elos(teams, outcomes, mode)
+function get_elos(teams, outcomes, mode, iterations=1)
     if mode == "Artifact assault"
         ref = 4
     elseif mode == "Domination"
@@ -175,8 +176,8 @@ function get_elos(teams, outcomes, mode)
     end
     all_players = Dict{String, Player}()
     totalgames = 1
-    n_players = length(teams[1])
-    for i in 1:n_players
+    for i in 1:length(teams[1])
+        n_players = length(teams[1][i])
         temp_teams = [Vector{String}(undef, n_players), Vector{String}(undef, n_players)]
         ss = Vector{Float64}(undef, 2)
         for j in 1:2
@@ -197,6 +198,7 @@ function get_elos(teams, outcomes, mode)
         team_ratings!(all_players, temp_teams, outcomes[i], ss[1], ss[2], ref, totalgames)
         totalgames += 1
     end
+
     all_players
 end
  
