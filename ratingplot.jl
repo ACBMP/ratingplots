@@ -67,7 +67,7 @@ s = ArgParseSettings(description="Plot TrueSkillThroughTime using CSV file.")
     help = "number of iterations for convergence"
     arg_type = Int64
     required = false
-    default = 1
+    default = 0
     end
 
     parse_args(s)
@@ -123,7 +123,7 @@ auto::Symbol = Symbol(-1);
 
 Get the TrueSkillThroughTime History. If converge=true, the convergence method is ran.
 """
-function gethistory(teams, outcome, mode, dates=false, p_draw=:auto, converge=true, gamma=0.036, startingdate="2020-03-01", trackingstart="2022-03-03")
+function gethistory(teams, outcome, mode, dates=false, p_draw=:auto, converge=true, gamma=0.036, iterations=30, startingdate="2020-03-01", trackingstart="2022-03-03")
     games::Vector{Vector{Vector{String}}} = []
     times::Vector{Int64} = Int64[]
     # parse teams
@@ -171,7 +171,7 @@ function gethistory(teams, outcome, mode, dates=false, p_draw=:auto, converge=tr
         h = ttt.History(games, results, dates, p_draw=p_draw, gamma=gamma)
     end
     if converge
-        ttt.convergence(h, verbose=false)
+        ttt.convergence(h, verbose=false, iterations=iterations)
     end
     return h
 end
@@ -252,13 +252,17 @@ function main()
     t, outcome, dates, mode = readmatches(pargs["fname"])
 
     if pargs["algo"] == "TTT"
+        if pargs["iterations"] == 0
+            pargs["iterations"] = 30
+        end
         if pargs["no-dates"]
-            h = gethistory(t, outcome, mode, false, :auto, !pargs["no-converge"], pargs["gamma"])
+            h = gethistory(t, outcome, mode, false, :auto, !pargs["no-converge"], pargs["gamma"], pargs["iterations"])
         else
-            h = gethistory(t, outcome, mode, dates, :auto, !pargs["no-converge"], pargs["gamma"])
+            h = gethistory(t, outcome, mode, dates, :auto, !pargs["no-converge"], pargs["gamma"], pargs["iterations"])
         end
         plothist(h, mode, pargs["threshold"], pargs["ribbon-scale"], (pargs["width"], pargs["height"]), pargs["ylim"], pargs["xlim"], pargs["format"])
     elseif pargs["algo"] == "Elo"
+        pargs["iterations"] = max(pargs["iterations"], 1)
         players = Dict{String, Player}()
         for i in 1:pargs["iterations"]
             for p in keys(players)
