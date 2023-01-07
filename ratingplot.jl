@@ -120,10 +120,10 @@ Get the TrueSkillThroughTime History. If converge=true, the convergence method i
 """
 function gethistory(teams, outcome, mode, dates=false, p_draw=:auto, converge=true, gamma=0.036, startingdate="2020-03-01", trackingstart="2022-03-03")
     games::Vector{Vector{Vector{String}}} = []
-    times::Vector{Int64} = []
+    times::Vector{Int64} = Int64[]
     # parse teams
     for i in 1:length(teams[1])
-        temp_teams = [[], []]
+        temp_teams = [String[], String[]]
         for j in 1:2
             temp = JSON.parse(replace(teams[j][i], "'" => "\""))
             if mode == "Artifact assault"
@@ -258,7 +258,6 @@ function main()
         players = get_elos(t, outcome, mode)
         plothist(players, mode, (pargs["width"], pargs["height"]), pargs["ylim"], pargs["xlim"], pargs["format"])
     end
-
 end
 
 main()

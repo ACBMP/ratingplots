@@ -31,7 +31,7 @@ end
 
 Maximum rating change for rating R with N games played assuming high elo at hi (default 1200).
 """
-function Kc(N::Int, R::Number, hi::Number=1200)
+function Kc(N::Int, R::Float64, hi::Float64=1200.0)
     if N < 30 && R < hi
         return 40
     elseif R <= hi
@@ -92,10 +92,7 @@ Calculate a weighted arithmetic mean of ratings with weights based on their diff
 """
 function w_mean(ratings, ratings_o)
     mean_o = sum(ratings_o) / length(ratings_o)
-    diffs = []
-    for r in ratings
-        push!(diffs, abs(r - mean_o))
-    end
+    diffs = [abs(r - mean_o) for r in ratings]
     weights = zeros(length(diffs))
     sum_diffs = sum(diffs)
     if sum_diffs > 0
@@ -106,8 +103,7 @@ function w_mean(ratings, ratings_o)
 
     w_sum = sum(weights)
     if w_sum == 0
-        w_sum = length(ratings)
-        weights = [1 for i = 1:w_sum]
+        weights = ones(length(ratings))
     end
     sum([ratings[i] * weights[i] for i in 1:length(ratings)]) / sum(weights)
 end
@@ -131,7 +127,7 @@ function team_ratings!(all_players, teams, outcome, s1, s2, ref=nothing, totalga
     for i in 1:l
         for p in teams[i]
             if !haskey(all_players, p)
-                all_players[p] = Player(800, 0, [(800, totalgames)])
+                all_players[p] = Player(800.0, 0, [(800.0, totalgames)])
             end
         end
     end
@@ -179,9 +175,10 @@ function get_elos(teams, outcomes, mode)
     end
     all_players = Dict{String, Player}()
     totalgames = 1
-    for i in 1:length(teams[1])
-        temp_teams = [[], []]
-        ss = []
+    n_players = length(teams[1])
+    for i in 1:n_players
+        temp_teams = [Vector{String}(undef, n_players), Vector{String}(undef, n_players)]
+        ss = Vector{Float64}(undef, 2)
         for j in 1:2
             temp = JSON.parse(replace(teams[j][i], "'" => "\""))
             if mode == "Artifact assault"
@@ -192,9 +189,9 @@ function get_elos(teams, outcomes, mode)
             end
             temp_teams[j] = names
             if mode == "Artifact assault"
-                push!(ss, sum([p["scored"] for p in temp]))
+                ss[j] = sum([p["scored"] for p in temp])
             else
-                push!(ss, sum([p["score"] for p in temp]))
+                ss[j] = sum([p["score"] for p in temp])
             end
         end
         team_ratings!(all_players, temp_teams, outcomes[i], ss[1], ss[2], ref, totalgames)
