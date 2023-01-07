@@ -117,7 +117,7 @@ function w_mean(ratings::Vector{Vector{Float64}})
     w_mean(ratings[1], ratings[2])
 end
 
-function team_ratings!(all_players, teams, outcome, s1, s2, ref=nothing, totalgames=1, iterations=1)
+function team_ratings!(all_players, teams, outcome, s1, s2, ref=nothing, totalgames=1)
     l = length(teams)
     if length(teams[1]) != length(teams[2])
         throw(error("team lengths differ"))
