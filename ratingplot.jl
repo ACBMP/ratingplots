@@ -63,6 +63,11 @@ s = ArgParseSettings(description="Plot TrueSkillThroughTime using CSV file.")
     arg_type = String
     required = false
     default = "png"
+    "--iterations", "-i"
+    help = "number of iterations for convergence"
+    arg_type = Int64
+    required = false
+    default = 1
     end
 
     parse_args(s)
@@ -216,8 +221,7 @@ function plothist(h::Dict{String, Player}, mode, size=(2000, 1000), ylim=0, xlim
     plt = plot(xlabel="Games", ylabel="Rating", title=mode, size=size, margin=(20, :mm), legend=false, right_margin=(30, :mm))
     
     annots::Vector{Tuple{String, Int64, Float64}} = []
-    for a in keys(h)
-        name = a
+    for name in keys(h)
         r = [x[1] for x in h[name].history]
         t = [x[2] for x in h[name].history]
         plot!(plt, t, r, label=name, linewidth=2, fillalpha=0.1)
@@ -255,7 +259,13 @@ function main()
         end
         plothist(h, mode, pargs["threshold"], pargs["ribbon-scale"], (pargs["width"], pargs["height"]), pargs["ylim"], pargs["xlim"], pargs["format"])
     elseif pargs["algo"] == "Elo"
-        players = get_elos(t, outcome, mode)
+        players = Dict{String, Player}()
+        for i in 1:pargs["iterations"]
+            for p in keys(players)
+                players[p].history = [(players[p].rating, 1)]
+            end
+            players = get_elos(t, outcome, mode, players)
+        end
         plothist(players, mode, (pargs["width"], pargs["height"]), pargs["ylim"], pargs["xlim"], pargs["format"])
     end
 end

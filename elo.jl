@@ -166,7 +166,7 @@ function team_ratings!(all_players, teams, outcome, s1, s2, ref=nothing, totalga
     all_players
 end
 
-function get_elos(teams, outcomes, mode, iterations=1)
+function get_elos(teams, outcomes, mode, all_players=Dict{String, Player}())
     if mode == "Artifact assault"
         ref = 4
     elseif mode == "Domination"
@@ -174,7 +174,6 @@ function get_elos(teams, outcomes, mode, iterations=1)
     else
         ref = nothing
     end
-    all_players = Dict{String, Player}()
     totalgames = 1
     for i in 1:length(teams[1])
         n_players = length(teams[1][i])
