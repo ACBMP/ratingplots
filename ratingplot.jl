@@ -116,7 +116,7 @@ function aaroles(team)
     return team
 end
 
-auto::Symbol = Symbol(-1);
+auto::Symbol = Symbol("auto");
 
 """
     gethistory(teams, outcome, dates, p_draw, converge, gamma, startingdate, trackingstart)

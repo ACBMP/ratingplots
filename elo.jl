@@ -151,13 +151,14 @@ function team_ratings!(all_players, teams, outcome, s1, s2, ref=nothing, totalga
 
     for j in 1:l
         for i in 1:2
-            if newR(all_players[teams[i][j]].rating, S[i], Es[i], all_players[teams[i][j]].games, s1, s2, ref) < 0 
-                println(teams, S, Es, s1, s2)
-                p = all_players[teams[i][j]]
-                println(p.rating + Kc(p.games, p.rating) * (S[i] - Es[i]) * (1 + score(s1, s2, ref)) + S[i])
-                throw(error("bad data"))
-            end
-            all_players[teams[i][j]].rating = newR(all_players[teams[i][j]].rating, S[i], Es[i], all_players[teams[i][j]].games, s1, s2, ref)
+            all_players[teams[i][j]].rating = newR(
+                                                   all_players[teams[i][j]].rating,
+                                                   S[i],
+                                                   Es[i],
+                                                   all_players[teams[i][j]].games,
+                                                   s1,
+                                                   s2,
+                                                   ref)
             all_players[teams[i][j]].games += 1
             push!(all_players[teams[i][j]].history, (all_players[teams[i][j]].rating, totalgames))
         end
