@@ -117,6 +117,9 @@ function w_mean(ratings::Vector{Vector{Float64}})
     w_mean(ratings[1], ratings[2])
 end
 
+"""
+    team_ratings!(all_players, teams, outcome, s1, s2, ref=nothing, totalgames=1)
+"""
 function team_ratings!(all_players, teams, outcome, s1, s2, ref=nothing, totalgames=1)
     l = length(teams)
     if length(teams[1]) != length(teams[2])
@@ -167,6 +170,9 @@ function team_ratings!(all_players, teams, outcome, s1, s2, ref=nothing, totalga
     all_players
 end
 
+"""
+    get_elos(teams, outcomes, mode, all_players)
+"""
 function get_elos(teams, outcomes, mode, all_players=Dict{String, Player}())
     if mode == "Artifact assault"
         ref = 4
@@ -179,23 +185,11 @@ function get_elos(teams, outcomes, mode, all_players=Dict{String, Player}())
     for i in 1:length(teams[1])
         n_players = length(teams[1][i])
         temp_teams = [Vector{String}(undef, n_players), Vector{String}(undef, n_players)]
-        ss = Vector{Float64}(undef, 2)
+        scores = Vector{Float64}(undef, 2)
         for j in 1:2
-            temp = JSON.parse(replace(teams[j][i], "'" => "\""))
-            if mode == "Artifact assault"
-                temp = aaroles(temp)
-                names = [p["player"] * " " * p["role"] for p in temp]
-            else
-                names = [p["player"] for p in temp]
-            end
-            temp_teams[j] = names
-            if mode == "Artifact assault"
-                ss[j] = sum([p["scored"] for p in temp])
-            else
-                ss[j] = sum([p["score"] for p in temp])
-            end
+            temp_teams[j], scores[j] = parse_team(teams[j][i], mode, true)
         end
-        team_ratings!(all_players, temp_teams, outcomes[i], ss[1], ss[2], ref, totalgames)
+        team_ratings!(all_players, temp_teams, outcomes[i], scores[1], scores[2], ref, totalgames)
         totalgames += 1
     end
 

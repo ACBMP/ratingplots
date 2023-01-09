@@ -116,60 +116,90 @@ function aaroles(team)
     return team
 end
 
-auto::Symbol = Symbol("auto");
+
+"""
+    parse_team(team, mode)
+
+Parse a JSON formatted team.
+"""
+function parse_team(team::String, mode, return_scores::Bool=false)
+    temp = JSON.parse(replace(team, "'" => "\""))
+    if mode == "Artifact assault"
+        temp = aaroles(temp)
+        names = [p["player"] * " " * p["role"] for p in temp]
+    else
+        names = [p["player"] for p in temp]
+    end
+    if return_scores
+        if mode == "Artifact assault"
+            scores = sum([p["scored"] for p in temp])
+        else
+            scores = sum([p["score"] for p in temp])
+        end
+        return names, scores
+    end
+    names
+end
 
 """
     gethistory(teams, outcome, dates, p_draw, converge, gamma, startingdate, trackingstart)
 
 Get the TrueSkillThroughTime History. If converge=true, the convergence method is ran.
 """
-function gethistory(teams, outcome, mode, dates=false, p_draw=:auto, converge=true, gamma=0.036, iterations=30, startingdate="2020-03-01", trackingstart="2022-03-03")
-    games::Vector{Vector{Vector{String}}} = []
-    times::Vector{Int64} = Int64[]
-    # parse teams
-    for i in 1:length(teams[1])
-        temp_teams = [String[], String[]]
-        for j in 1:2
-            temp = JSON.parse(replace(teams[j][i], "'" => "\""))
-            if mode == "Artifact assault"
-                temp = aaroles(temp)
-                names = [p["player"] * " " * p["role"] for p in temp]
-            else
-                names = [p["player"] for p in temp]
-            end
-            temp_teams[j] = names
-        end
-        if typeof(dates) != Bool
+function gethistory(teams::Vector{Vector{String}}, outcome::Vector{Int64}, mode, dates=false, p_draw::Symbol=:auto, converge::Bool=true, gamma::Float64=0.036, iterations::Int64=30, startingdate::String="2020-03-01", trackingstart::String="2022-03-03")
+    # pre-allocate
+    n_games = length(teams[1])
+    games::Vector{Vector{Vector{String}}} = Vector{Vector{Vector{String}}}(undef, n_games)
+
+    if dates === true
+        times::Vector{Int64} = Vector{Int64}(undef, n_games)
+    end
+
+    # parse teams and dates and prepare results
+    results::Vector{Vector{Float64}} = Vector{Vector{Float64}}(undef, n_games)
+
+    for i in 1:n_games
+        n_players = length(teams[1][i])
+        if dates !== false
             # these dates are a bit weird
+            # all modes other than domi will have some dates missing
             if dates[i] === missing
-                push!(times, Dates.value(Date(trackingstart) - Date(startingdate)))
+                times[i] = Dates.value(Date(trackingstart) - Date(startingdate))
             else
-                push!(times, Dates.value(Date(dates[i]) - Date(startingdate)))
+                times[i] = Dates.value(Date(dates[i]) - Date(startingdate))
             end
         end
-        push!(games, temp_teams)
-    end
-    # prepare results
-    results::Vector{Vector{Float64}} = []
-    for r in outcome
-        if r == 1
-            push!(results, [1., 0.])
+
+        # parse the teams in the game
+        temp_teams = [Vector{String}(undef, n_players), Vector{String}(undef, n_players)]
+        for j in 1:2
+            temp_teams[j] = parse_team(teams[j][i], mode)
+        end
+        games[i] = temp_teams
+
+        # format outcomes for TTT
+        if outcome[i] == 1
+            results[i] = [1., 0.]
         elseif r == 2
-            push!(results, [0., 1.])
+            results[i] = [0., 1.]
         else
-            push!(results, [0.5, 0.5])
+            results = [0.5, 0.5]
         end
     end
+
     # calculate draw likelihood
     if p_draw === :auto
         draws = count(r->r==[0.5, 0.5], results)
-        p_draw = draws / length(results)
+        p_draw = draws / n_games
     end
+
+    # create history if we have dates
     if dates === false
         h = ttt.History(games, results, p_draw=p_draw, gamma=gamma)
     else
-        h = ttt.History(games, results, dates, p_draw=p_draw, gamma=gamma)
+        h = ttt.History(games, results, times, p_draw=p_draw, gamma=gamma)
     end
+
     if converge
         ttt.convergence(h, verbose=false, iterations=iterations)
     end
