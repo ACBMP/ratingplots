@@ -78,13 +78,22 @@ end
 
 Read a CSV file and output teams, outcomes, dates, and mode.
 """
-function readmatches(fname="matches.csv")
+function readmatches(fname="matches.csv", teams=true, outcomes=true, dates=true, mode=true)
     matches = CSV.read(fname, DataFrame, drop=["new"])
-    t = [matches[!, 3], matches[!, 4]]
-    outcome = matches[!, 2]
-    dates = matches[!, 5]
-    mode = matches[!, 1][1]
-    return t, outcome, dates, mode
+    retvals = []
+    if teams
+        push!(retvals, [matches[!, 3], matches[!, 4]])
+    end
+    if outcomes
+        push!(retvals, matches[!, 2])
+    end
+    if dates
+        push!(retvals, matches[!, 5])
+    end
+    if mode
+        push!(retvals, matches[!, 1][1])
+    end
+    retvals
 end
 
 """
@@ -180,10 +189,10 @@ function gethistory(teams::Vector{Vector{String}}, outcome::Vector{Int64}, mode,
         # format outcomes for TTT
         if outcome[i] == 1
             results[i] = [1., 0.]
-        elseif r == 2
+        elseif outcome[i] == 2
             results[i] = [0., 1.]
         else
-            results = [0.5, 0.5]
+            results[i] = [0.5, 0.5]
         end
     end
 

@@ -1,3 +1,4 @@
+include("shared.jl")
 
 """
 Player struct.
@@ -196,3 +197,34 @@ function get_elos(teams, outcomes, mode, all_players=Dict{String, Player}())
     all_players
 end
  
+"""
+    plothist(h::Dict{String, Player}, mode, size, ylim, xlim, fmt)
+
+Plot player history dictionary h.
+"""
+function plothist(h::Dict{String, Player}, mode, size=(2000, 1000), ylim=0, xlim=0, fmt="png")
+    plt = plot(xlabel="Games", ylabel="Rating", title=mode, size=size, margin=(20, :mm), legend=false, right_margin=(30, :mm))
+    
+    annots::Vector{Tuple{String, Int64, Float64}} = []
+    for name in keys(h)
+        r = [x[1] for x in h[name].history]
+        t = [x[2] for x in h[name].history]
+        plot!(plt, t, r, label=name, linewidth=2, fillalpha=0.1)
+        push!(annots, (name, t[end], r[end]))
+    end
+    
+    for i = 1:length(annots)
+        annotate!(annots[i][2] + 2, annots[i][3], text(annots[i][1], plt[1][i][:linecolor], :left))
+    end
+
+    if xlim > 0
+        xlims!(xlim, xlims(plt)[2])
+    end
+    if ylim > 0
+        ylims!(-ylim, ylim)
+    end
+    
+    savefig("$mode-elo.$fmt")
+end
+
+
