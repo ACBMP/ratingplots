@@ -1,3 +1,4 @@
+include("shared.jl")
 
 function get_difference(teams, mode)
     n_games = length(teams[1])
@@ -24,14 +25,14 @@ function get_difference(teams, mode)
     score_diffs
 end
 
-function plot_score_diffs(score_diffs, mode, distr=Exponential)
+function plot_score_diffs(score_diffs, mode, distr=Exponential; size=(1500, 750))
     if distr !== nothing
         # histogram of score diffs
-        hist = histogram(score_diffs, label="Score Diffs", normalize=:pdf)
+        hist = histogram(score_diffs, label="Score Diffs", normalize=:pdf, size=size)
         # fitted distribution
         plot!(fit(distr, score_diffs), label="Fit")
     else
-        hist = histogram(score_diffs, label="Score Diffs")
+        hist = histogram(score_diffs, label="Score Diffs", size=size)
     end
     vline!([mean(score_diffs)], label="Average", line=5, formatter=:plain)
     # ticks
@@ -41,7 +42,6 @@ function plot_score_diffs(score_diffs, mode, distr=Exponential)
     xlabel!("Score Difference")
     ylabel!("Occurences")
     savefig("$mode score.html")
-    hist
 end
 
 function get_stats(teams, mode)
@@ -52,7 +52,6 @@ function get_stats(teams, mode)
         n_games -= 1
     end
     for i in 1:n_games
-        # temp_scores = Vector{Int64}(undef, 2)
         for j in 1:2
             temp = JSON.parse(replace(teams[j][i], "'" => "\""))
             for p in temp
@@ -73,10 +72,6 @@ function get_stats(teams, mode)
         end
     end
     players
-end
-
-function kd(n, players=players)
-    sum(players[n]["kills"]) / sum(players[n]["deaths"]) / players[n]["games"]
 end
 
 function plot_stats(stats, teams, mode)
@@ -126,19 +121,3 @@ function plot_stats(stats, teams, mode)
     savefig("$(mode)_$(join(stats, '_')).html")
 end
 
-function julia_main()
-    for m in [:mh, :e, :do]
-        teams, mode = readmatches(m; outcomes=false, dates=false);
-        score_diffs = get_difference(teams, mode);
-        plot_score_diffs(score_diffs, mode, nothing)
-        for s in [
-                  ["deaths", "kills"],
-                  ["deaths", "kills", "games"],
-                  ["deaths", "kills", "score"]
-                 ]
-            plot_stats(s, teams, mode)
-        end
-    end
-end
-
-julia_main()
