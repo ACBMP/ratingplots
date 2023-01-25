@@ -28,11 +28,11 @@ end
 function plot_score_diffs(score_diffs, mode, distr=Exponential; size=(1500, 750))
     if distr !== nothing
         # histogram of score diffs
-        hist = histogram(score_diffs, label="Score Diffs", normalize=:pdf, size=size)
+        hist = histogram(score_diffs, label="Score Diffs", normalize=:pdf, size=size, margin=(15, :mm))
         # fitted distribution
         plot!(fit(distr, score_diffs), label="Fit")
     else
-        hist = histogram(score_diffs, label="Score Diffs", size=size)
+        hist = histogram(score_diffs, label="Score Diffs", size=size, margin=(15, :mm))
     end
     vline!([mean(score_diffs)], label="Average", line=5, formatter=:plain)
     # ticks
@@ -41,7 +41,7 @@ function plot_score_diffs(score_diffs, mode, distr=Exponential; size=(1500, 750)
     title!("$mode Score Difference")
     xlabel!("Score Difference")
     ylabel!("Occurences")
-    savefig("$mode score.html")
+    savefig("$(mode)_score.html")
 end
 
 function get_stats(teams, mode)
@@ -98,7 +98,7 @@ function plot_stats(stats, teams, mode)
         end
     end
     # setting the size with 3D html plots seems buggy
-    plot(legend=false)#, size=(1500, 1500))
+    plot(legend=false, size=(1000, 750), margin=(15, :mm))
     
     n_players = length(interesting)
     colors = distinguishable_colors(n_players)
@@ -115,9 +115,10 @@ function plot_stats(stats, teams, mode)
         throw(error("not enough stats"))
     end
     
-    title!(titlecase(mode))
-    xlabel!(titlecase(stats[1]))
-    ylabel!(titlecase(stats[2]))
+    stats = titlecase.(stats)
+    title!(titlecase(mode) * " " * join(reverse(stats), " / "))
+    xlabel!(stats[1])
+    ylabel!(stats[2])
     savefig("$(mode)_$(join(stats, '_')).html")
 end
 

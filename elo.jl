@@ -203,7 +203,7 @@ end
 Plot player history dictionary h.
 """
 function plothist(h::Dict{String, Player}, mode, size=(2000, 1000), ylim=0, xlim=0, fmt="png")
-    plt = plot(xlabel="Games", ylabel="Rating", title=mode, size=size, margin=(20, :mm), legend=false, right_margin=(30, :mm))
+    plt = plot(xlabel="Games", ylabel="Rating", title=mode * " Elo [AN Flavor]", size=size, margin=(20, :mm), legend=false, right_margin=(30, :mm))
     
     annots::Vector{Tuple{String, Int64, Float64}} = []
     for name in keys(h)

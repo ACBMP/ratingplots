@@ -71,7 +71,7 @@ end
 Plot History h. Players with deviation above stdevthreshold will be ignored. Deviations are scaled by ribscale for plotting.
 """
 function plothist(h::ttt.History, mode, stdevthreshold=0.8, ribscale=0.1, size=(2000, 1000), ylim=0, xlim=0, fmt="png")
-    plt = plot(xlabel="Games", ylabel="Skill", title=mode, size=size, margin=(20, :mm), legend=false, right_margin=(30, :mm))
+    plt = plot(xlabel="Games", ylabel="Skill", title=mode * " TrueSkillThroughTime", size=size, margin=(15, :mm), legend=false, right_margin=(15, :mm))
     
     curve = ttt.learning_curves(h)
     
